@@ -86,14 +86,13 @@ Tensorboard is started in the parameter server container. This container has the
 VNC is started in each worker container on port `5900/tcp`. Because workers can be scaled out, we can't map the container port to the host machine directly. The command `docker ps` will list all the running containers and where their ports are exposed:
 
 ```
-docker ps
+docker ps --format='{{.ID}} {{.Names}} {{.Command}} {{ .Ports}}'
 
-CONTAINER ID  IMAGE             COMMAND                 CREATED            PORTS            NAMES
-69242910bf20  mario-kart-agent  "/bin/bash ./paramsv…"  5900/tcp,  0.0.0.0:12345->12345/tcp mario-kart-agent_param_svr_1
-e24147a59bd5  mario-kart-agent  "/bin/bash ./worker.…"  12345/tcp, 0.0.0.0:32774->5900/tcp  mario-kart-agent_3
-50248fe67797  mario-kart-agent  "/bin/bash ./worker.…"  12345/tcp, 0.0.0.0:32773->5900/tcp  mario-kart-agent_1
-162c8ef7b951  mario-kart-agent  "/bin/bash ./worker.…"  12345/tcp, 0.0.0.0:32772->5900/tcp  mario-kart-agent_2
-a107526d48c4  mario-kart-agent  "/bin/bash ./worker.…"  12345/tcp, 0.0.0.0:32771->5900/tcp  mario-kart-agent_4
+69242910bf20 agent_param_svr_1 "/bin/bash ./paramsv…" 5900/tcp,  0.0.0.0:12345->12345/tcp
+e24147a59bd5 agent_worker_3    "/bin/bash ./worker.…" 12345/tcp, 0.0.0.0:32774->5900/tcp
+50248fe67797 agent_worker_1    "/bin/bash ./worker.…" 12345/tcp, 0.0.0.0:32773->5900/tcp
+162c8ef7b951 agent_worker_2    "/bin/bash ./worker.…" 12345/tcp, 0.0.0.0:32772->5900/tcp
+a107526d48c4 agent_worker_4    "/bin/bash ./worker.…" 12345/tcp, 0.0.0.0:32771->5900/tcp
 ```
 
 Then you can use your favorite VNC client (we've been using [realvnc](https://www.realvnc.com)) to connect to localhost on the dynamically chosen port and watch the agent in real-time. Note that running the VNC client can cause some performance overhead.
