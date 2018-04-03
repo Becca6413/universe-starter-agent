@@ -1,4 +1,4 @@
-FROM bz/gym-mupen64plus:0.0.5
+FROM bz/tmp-test-gym:0.0.5
 LABEL maintainer "Brian Zier <https://github.com/bzier/>"
 
 RUN apt-get update && \
@@ -19,7 +19,8 @@ RUN pip install --upgrade pip && \
         opencv-python \
         scipy \
         six \
-        tensorflow && \
+        # Locking in Tensorflow at 1.5 for now due to https://github.com/tensorflow/tensorflow/issues/17411
+        tensorflow==1.5 && \
     # Don't know why, but this one wanted to be installed separately
     pip install \ 
         universe
