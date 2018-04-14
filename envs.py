@@ -96,6 +96,9 @@ class DiagnosticsInfoI(vectorized.Filter):
     def __init__(self, log_interval=503):
         super(DiagnosticsInfoI, self).__init__()
 
+        if log_interval <= 0:
+            raise ValueError("log_interval must be a positive integer")
+
         self._episode_time = time.time()
         self._last_time = time.time()
         self._local_t = 0
@@ -130,7 +133,8 @@ class DiagnosticsInfoI(vectorized.Filter):
                 self._episode_length += 1
             self._all_rewards.append(reward)
 
-        if self._local_t % self._log_interval == 0:
+        local_t_since_log_interval = self._local_t % self._log_interval
+        if local_t_since_log_interval == 0:
             cur_time = time.time()
             elapsed = cur_time - self._last_time
             fps = self._log_interval / elapsed
@@ -138,7 +142,7 @@ class DiagnosticsInfoI(vectorized.Filter):
             to_log["diagnostics/fps"] = fps
             cur_episode_id = info.get('vectorized.episode_id', 0)
             if self._last_episode_id == cur_episode_id:
-                to_log["global/reward_per_step"] = self._reward_in_interval / self._log_interval  # TODO: Divide by zero?
+                to_log["global/reward_per_step"] = self._reward_in_interval / self._log_interval
                 self._reward_in_interval = 0
                 to_log["diagnostics/fps_within_episode"] = fps
             self._last_episode_id = cur_episode_id
@@ -174,7 +178,9 @@ class DiagnosticsInfoI(vectorized.Filter):
             to_log["global/episode_length"] = self._episode_length
             to_log["global/episode_time"] = total_time
             to_log["global/reward_per_time"] = self._episode_reward / total_time
-            to_log["global/reward_per_step"] = self._reward_in_interval / (self._local_t % self._log_interval)  # TODO: Divide by zero?
+            # If we're not already at a log interval, log the remaining reward per step since the last log interval:
+            if local_t_since_log_interval != 0:
+                to_log["global/reward_per_step"] = self._reward_in_interval / (local_t_since_log_interval)
             self._episode_reward = 0
             self._episode_length = 0
             self._reward_in_interval = 0
