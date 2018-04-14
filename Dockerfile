@@ -25,9 +25,9 @@ RUN pip install --upgrade pip && \
     pip install \ 
         universe
 
+# Expose the port for Tensorboard
+EXPOSE 12345
+
 # Copy the current directory to the container working dir
 WORKDIR /src/universe-starter-agent
 COPY . .
-
-# Expose the port for Tensorboard
-EXPOSE 12345
