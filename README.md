@@ -82,15 +82,17 @@ docker-compose -p mario-kart-agent down
 ### Tensorboard (i.e. training data)
 Tensorboard is started in the parameter server container. This container has the Tensorboard port (`12345`) mapped to the same port on your host. In other words, you can browse to [`http://localhost:12345`](http://localhost:12345) to view the Tensorboard UI.
 
-### VNC (i.e. watch the agent)
-VNC is started in each worker container. Because workers can be scaled out, we can't map the container port to the host machine. Otherwise each of the containers would conflict fighting for the same host port. Instead, you can examine each worker container with:
-```sh
-docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}::{{range $p, $conf := .NetworkSettings.Ports}}{{$p}} -> localhost::{{(index $conf 0).HostPort}}{{end}}' $INSTANCE_ID
-```
-*Here `$INSTANCE_ID` is the name or ID of the worker container you're interested in*
+### VNC (i.e. watch an agent)
+VNC is started in each worker container on port `5900/tcp`. Because workers can be scaled out, we can't map the container port to the host machine directly. The command `docker ps` will list all the running containers and where their ports are exposed:
 
-This will return something like:
-```sh
-172.17.0.2::5900/tcp -> localhost::32790
 ```
-Then you can use your favorite VNC client to connect to localhost on the dynamically chosen port and watch the agent in real-time. Note that running the VNC client can cause some performance overhead.
+docker ps --format='{{.ID}} {{.Names}} {{.Command}} {{ .Ports}}'
+
+69242910bf20 agent_param_svr_1 "/bin/bash ./paramsv…" 5900/tcp,  0.0.0.0:12345->12345/tcp
+e24147a59bd5 agent_worker_3    "/bin/bash ./worker.…" 12345/tcp, 0.0.0.0:32774->5900/tcp
+50248fe67797 agent_worker_1    "/bin/bash ./worker.…" 12345/tcp, 0.0.0.0:32773->5900/tcp
+162c8ef7b951 agent_worker_2    "/bin/bash ./worker.…" 12345/tcp, 0.0.0.0:32772->5900/tcp
+a107526d48c4 agent_worker_4    "/bin/bash ./worker.…" 12345/tcp, 0.0.0.0:32771->5900/tcp
+```
+
+Then you can use your favorite VNC client (we've been using [realvnc](https://www.realvnc.com)) to connect to localhost on the dynamically chosen port and watch the agent in real-time. Note that running the VNC client can cause some performance overhead.
