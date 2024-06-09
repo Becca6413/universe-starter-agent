@@ -71,6 +71,43 @@ One of the key distinctions between a normal environment and a universe environm
 is that a universe environment is _real time_.  This means that there should be a thread
 that would constantly interact with the environment and tell it what to do.  This thread is here.
 """
+    actions = [];
+    a = [];
+    for i in range(18):
+        actions.append([0, 0, 0, 0, 0, 0, 0]);
+        a.append([1]);
+    for i in range(45):
+        actions.append([0, 0, 1, 0, 0, 0, 0]);
+        a.append([4]);
+    for i in range(65):
+        actions.append([-34, 0, 1, 0, 1, 0, 0]);
+        a.append([106]);
+    for i in range(10):
+        actions.append([0, 0, 1, 0, 0, 0, 0]);
+        a.append([4]);
+    for i in range(24):
+        actions.append([34, 0, 1, 0, 0, 0, 0]);
+        a.append([103]);
+    for i in range(10):
+        actions.append([0, 0, 1, 0, 0, 0, 0]);
+        a.append([4]);
+    for i in range(5):
+        actions.append([55, 0, 1, 0, 0, 0, 0]);
+        a.append([187]);
+    for i in range(25):
+        actions.append([0, 0, 1, 0, 0, 0, 0]);
+        a.append([4]);
+    for i in range(5):
+        actions.append([-55, 0, 1, 0, 1, 0, 0]);
+        a.append([190]);
+    for i in range(50):
+        actions.append([-34, 0, 1, 0, 1, 0, 0]);
+        a.append([104]);
+    for i in range(46):
+        actions.append([0, 0, 1, 0, 0, 0, 0]);
+        a.append([4]);
+
+    
     def __init__(self, env, policy, num_local_steps, visualise):
         threading.Thread.__init__(self)
         self.queue = queue.Queue(5)
@@ -113,6 +150,7 @@ runner appends the policy to the queue.
     last_features = policy.get_initial_features()
     length = 0
     rewards = 0
+    i = 0;
 
     while True:
         terminal_end = False
@@ -121,6 +159,11 @@ runner appends the policy to the queue.
         for _ in range(num_local_steps):
             fetched = policy.act(last_state, *last_features)
             action, value_, features = fetched[0], fetched[1], fetched[2:]
+            if i < len(RunnerThread.actions):
+                action *= 0.0001;
+                action[RunnerThread.a[i][0]-1] = 1;
+                i += 1;
+
             # argmax to convert from one-hot
             state, reward, terminal, info = env.step(action.argmax())
             if render:
@@ -143,8 +186,9 @@ runner appends the policy to the queue.
 
             timestep_limit = env.spec.tags.get('wrapper_config.TimeLimit.max_episode_steps')
             if terminal or length >= timestep_limit:
+                i = 0;
                 terminal_end = True
-                if length >= timestep_limit or not env.metadata.get('semantics.autoreset'):
+                if terminal_end or not env.metadata.get('semantics.autoreset'):
                     last_state = env.reset()
                 last_features = policy.get_initial_features()
                 print("Episode finished. Sum of rewards: %d. Length: %d" % (rewards, length))
